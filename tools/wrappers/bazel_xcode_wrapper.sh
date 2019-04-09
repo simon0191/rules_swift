@@ -37,7 +37,7 @@ set -eu
 function rewrite_argument {
   ARG="$1"
   ARG="${ARG//__BAZEL_XCODE_DEVELOPER_DIR__/$WRAPPER_DEVDIR}"
-  ARG="${ARG//__BAZEL_XCODE_SDKROOT__/$SDKROOT}"
+  ARG="${ARG//__BAZEL_XCODE_SDKROOT__/$WRAPPER_SDKROOT}"
   echo "$ARG"
 }
 
@@ -55,7 +55,7 @@ function rewrite_params_file {
     NEWFILE="$(mktemp "${TMPDIR%/}/bazel_xcode_wrapper_params.XXXXXXXXXX")"
     sed \
         -e "s#__BAZEL_XCODE_DEVELOPER_DIR__#$WRAPPER_DEVDIR#g" \
-        -e "s#__BAZEL_XCODE_SDKROOT__#$SDKROOT#g" \
+        -e "s#__BAZEL_XCODE_SDKROOT__#$WRAPPER_SDKROOT#g" \
         "$PARAMSFILE" > "$NEWFILE"
     echo "$NEWFILE"
   else
@@ -72,6 +72,12 @@ shift
 WRAPPER_DEVDIR="${DEVELOPER_DIR:-}"
 if [[ -z "$WRAPPER_DEVDIR" ]] ; then
   WRAPPER_DEVDIR="$(xcode-select -p)"
+fi
+
+# Pick an appropriate value for DEVELOPER_DIR if not already set.
+WRAPPER_SDKROOT="${SDKROOT:-}"
+if [[ -z "$WRAPPER_SDKROOT" ]] ; then
+  WRAPPER_SDKROOT="$(xcrun --sdk iphonesimulator --show-sdk-path)"
 fi
 
 # If any temporary files are created (like rewritten response files), clean
